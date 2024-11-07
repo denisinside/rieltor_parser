@@ -1,0 +1,93 @@
+// 
+// Created by intellij-pest on 2024-11-05
+// grammar
+// Author: denisinside
+// 
+
+WHITESPACE = _{ " " | "\t" | "\n" }
+
+document = _{ SOI ~ (not_apartment? ~ apartment)+ }
+
+not_apartment = _{ (!apartment ~ ANY)* }
+
+apartment = _{
+    price
+  | address
+  | characteristics
+  | description
+  | details_description
+  | rieltor
+}
+
+price        =  { "<div class=\"offer-view-price-title\">" ~ price_value ~ "</div>" }
+price_value  = _{ price_number ~ currency ~ "/міс" }
+price_number =  { (ASCII_DIGIT ~ (ASCII_DIGIT | WHITESPACE)*) }
+currency     = @{ "грн" | "€" | "$" }
+
+address      =  { "<div class=\"offer-view-address\">" ~ street ~ "," ~ house_number ~ "</div>" ~ skip_value ~ "</div>" ~ "<div class=\"offer-view-region\">" ~ city ~ "," ~ district }
+street       = _{ ("<a class=\"address-link\" href=\"" ~ skip_attr_value ~ "\">" ~ value ~ "</a>") | street_value }
+city         = _{ "<a class=\"address-link\" href=\"https://rieltor.ua/flats-rent/\">" ~ value ~ "</a>" }
+district     = _{ "<a class=\"address-link\" href=\"" ~ skip_attr_value ~ "\" data-analytics-event=\"card-click-region\">" ~ value ~ "</a>" }
+house_number = @{ number ~ ("/" ~ number)? ~ ukr_letter? }
+street_value = @{ (!"," ~ ANY)* }
+
+characteristics =  {
+    l_p_char ~ room_count ~ r_p_char ~
+    l_p_char ~ area ~ r_p_char ~
+    l_p_char ~ floor_info ~ r_p_char ~
+    (l_p_char ~ house_type_1 ~ r_p_char)? ~
+    (l_p_char ~ room_planning_1 ~ r_p_char)? ~
+    (l_p_char ~ state_1 ~ r_p_char)? ~
+    l_p_date_char ~ renewed ~ r_p_char ~
+    l_p_date_char ~ published ~ r_p_char ~
+    l_p_date_char ~ views ~ r_p_char
+}
+l_p_char         = _{ ("<div class=\"offer-view-details-column" ~ "\">")? ~ "<div class=\"offer-view-details-row\">" ~ skip_svg? ~ "</svg>" ~ "<span>" }
+l_p_date_char    = _{ ("<div class=\"offer-view-details-column-aside" ~ "\">")? ~ "<div class=\"offer-view-details-row\">" ~ skip_svg? ~ "</svg>" ~ "<span>" }
+r_p_char         = _{ "</span>" ~ "</div>" ~ "</div>"? }
+
+room_count      = { "<a href=\"" ~ skip_attr_value ~ "\">" ~ number ~ "кімнат" ~ ("а" | "и")? ~ "</a>" }
+area            = { number ~ "/" ~ number ~ "/" ~ number ~ "м²" }
+floor_info      = { "поверх" ~ number ~ "з" ~ number }
+house_type_1    = { value }
+room_planning_1 = { value }
+state_1         = { value }
+renewed         = { event_date }
+published       = { event_date }
+views           = { number ~ "(сьогодні" ~ number ~ "," ~ "вчора" ~ number ~ ")" }
+event_date      = @{ "сьогодні" | "вчора" | number ~ (" дні" ~ "в"? | " міс." | " тиж.") ~ " тому" }
+
+description = { "<div class=\"offer-view-section-title\">Опис</div>" ~ "<div class=\"offer-view-section-text\">" ~ description_text ~ "</div>" }
+description_text  = @{ (!"</div>" ~ ANY)* }
+
+details_description =  _{ "<div class=\"offer-view-section-title\">Деталі</div>" ~ "<div class=\"offer-view-section-text\">" ~ det_descr_text ~ "</div>" }
+det_descr_text      =  { (!"</div>" ~ (not_detail | detail))+ }
+not_detail          =  _{ (!"</div>" ~ !detail ~ ANY)+ }
+detail              = _{ house_type | room_planning | state | bargain | commission }
+house_type          = _{ "Будинок -" ~ house_value ~ "," }
+room_planning       = _{ "Планування кімнат" ~ planning_value ~ "." }
+state               = _{ "Загальний стан квартири -" ~ state_value ~ "." }
+bargain             =  { "Торг доречний" }
+commission          =  { "Комісія за послуги" ~ number ~ "%" }
+
+house_value    = @{ (!"," ~ ANY)+ }
+planning_value = @{ (!"." ~ ANY)+ }
+state_value    = @{ (!"." ~ ANY)+ }
+
+rieltor              =  { "<div class=\"offer-view-rieltor-header-info\">" ~ rieltor_phone_number ~ rieltor_name ~ rieltor_position ~ rieltor_agency? }
+rieltor_phone_number = _{ "<a href=\"https://" ~ phone_number ~ ".rieltor.ua/\" class=\"offer-view-rieltor-name\" rel=\"\">" }
+rieltor_name         =  { value ~ "</a>" }
+rieltor_position     =  { "<div class=\"offer-view-rieltor-position\">" ~ value ~ "</div>" }
+rieltor_agency       =  { "<a href=\"" ~ skip_attr_value ~ "\"" ~ "class=\"offer-view-rieltor-agency-link\">" ~ value ~ "</a>" }
+phone_number         = @{ ASCII_DIGIT{10} }
+
+number     = @{ ASCII_DIGIT+ }
+ukr_letter = @{
+    ('А'..'Я' | 'а'..'я' | "І" | "і" | "Ї" | "ї" | "Є" | "є" | "Ґ" | "ґ")
+}
+
+value      = @{ (!"<" ~ !" "{5} ~ ANY)* }
+
+skip_value      = _{ (!"</div>" ~ ANY)* }
+skip_attr_value = _{ (!"\"" ~ ANY)* }
+skip_svg        = _{ (!"</svg>" ~ ANY)* }

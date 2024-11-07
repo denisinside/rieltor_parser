@@ -1,0 +1,10 @@
+[package]
+name = "rieltor_parser"
+version = "0.1.0"
+edition = "2021"
+authors = ["Shvachka Denys <d.shvachka@ukma.edu.ua>"]
+description = "A parser for extracting detailed apartment information from the rieltor.ua website's HTML."
+
+[dependencies]
+pest = "2.7.14"
+pest_derive = "2.7.14"
