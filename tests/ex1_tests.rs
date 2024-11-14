@@ -7,8 +7,8 @@ mod tests {
 
     #[test]
     fn test_document_parsing() {
-        let content = load_html("ex1.html");
-        let pairs = ApartmentParser::parse(Rule::document, &content).expect("Unsuccessful parsing.");
+        let content = load_html("ex1.html").unwrap();
+        let pairs = ApartmentParser::parse(Rule::document, content.as_str()).expect("Unsuccessful parsing.");
 
         for pair in pairs {
             match pair.as_rule() {
