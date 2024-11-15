@@ -1,21 +1,20 @@
 mod appartment;
 
+use crate::appartment::*;
 use anyhow::{anyhow, Result};
 use pest::Parser;
 use pest_derive::Parser;
 use reqwest::Url;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
-use std::fs;
-use crate::appartment::*;
 
 #[derive(Parser)]
 #[grammar = "./grammar.pest"]
 pub struct ApartmentParser;
 
-
 pub fn parse(html_content: &str) -> Result<Apartment> {
-    let mut apartment = Apartment::new();
+    let mut apartment = Apartment::default();
     let parsed = ApartmentParser::parse(Rule::document, html_content)
         .map_err(|_| anyhow!("Parsing failed"))?;
 
@@ -26,28 +25,49 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
             Rule::id => apartment.id = pair.as_str().to_string(),
             Rule::price => {
                 let mut inner = pair.into_inner();
-                let mut price = Price::new();
-                price.price_number =  inner.next().unwrap().as_str().replace(" ", "").parse::<u32>()?;
-                match inner.next().unwrap().as_str() {
-                    "$" => price.currency = Currency::USD,
-                    "€" => price.currency = Currency::EUR,
-                    _ => price.currency = Currency::UAH,
-                }
+                let price = Price {
+                    price_number : inner
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .replace(" ", "")
+                    .parse::<u32>()?,
+                    currency: match inner.next().unwrap().as_str() {
+                    "$" => Currency::Usd,
+                    "€" => Currency::Eur,
+                    _ => Currency::Uah,
+                    }
+                };
                 apartment.price = price;
-            },
+            }
             Rule::address => {
                 let mut inner = pair.into_inner();
                 let street = inner.next().unwrap().as_str().to_string();
                 let house_number = inner.next().unwrap().as_str().to_string();
                 let city = inner.next().unwrap().as_str().to_string();
                 let district = inner.next().unwrap().as_str().to_string();
-                apartment.address = Address { street, house_number, city, district };
-            },
-            Rule::description_text => apartment.description.advert_description = pair.as_str().to_string().replace("<br />", ""),
+                apartment.address = Address {
+                    street,
+                    house_number,
+                    city,
+                    district,
+                };
+            }
+            Rule::description_text => {
+                apartment.description.advert_description =
+                    pair.as_str().to_string().replace("<br />", "")
+            }
             Rule::characteristics => {
                 let mut inner = pair.into_inner();
 
-                apartment.characteristics.room_count = inner.next().unwrap().into_inner().next().unwrap().as_str().parse::<u32>()?;
+                apartment.characteristics.room_count = inner
+                    .next()
+                    .unwrap()
+                    .into_inner()
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .parse::<u32>()?;
 
                 let mut area_pairs = inner.next().unwrap().into_inner();
                 apartment.characteristics.area = Area {
@@ -57,19 +77,34 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
                 };
 
                 let mut floor_info_pairs = inner.next().unwrap().into_inner();
-                apartment.characteristics.floor = floor_info_pairs.next().unwrap().as_str().parse::<u32>()?;
-                apartment.characteristics.max_floor = floor_info_pairs.next().unwrap().as_str().parse::<u32>()?;
+                apartment.characteristics.floor =
+                    floor_info_pairs.next().unwrap().as_str().parse::<u32>()?;
+                apartment.characteristics.max_floor =
+                    floor_info_pairs.next().unwrap().as_str().parse::<u32>()?;
 
-                apartment.characteristics.statistics.renewed = inner.next().unwrap().into_inner().next().unwrap().as_str().to_string();
-                apartment.characteristics.statistics.published = inner.next().unwrap().into_inner().next().unwrap().as_str().to_string();
-                let mut views_pairs  = inner.next().unwrap().into_inner();
+                apartment.characteristics.statistics.renewed = inner
+                    .next()
+                    .unwrap()
+                    .into_inner()
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .to_string();
+                apartment.characteristics.statistics.published = inner
+                    .next()
+                    .unwrap()
+                    .into_inner()
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .to_string();
+                let mut views_pairs = inner.next().unwrap().into_inner();
                 apartment.characteristics.statistics.views = Views {
                     total: views_pairs.next().unwrap().as_str().parse::<u32>()?,
                     today: views_pairs.next().unwrap().as_str().parse::<u32>()?,
                     yesterday: views_pairs.next().unwrap().as_str().parse::<u32>()?,
                 };
-
-            },
+            }
             Rule::label_section => {
                 for pair in pair.into_inner() {
                     match pair.as_rule() {
@@ -79,38 +114,48 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
                         Rule::allow_pets => apartment.permits.allow_pets = true,
                         Rule::subway_station => {
                             let mut inner = pair.into_inner();
-                            apartment.infrastructure.subway_station.push(
-                                SubwayStation {
-                                    line: match inner.next().unwrap().as_str() {
-                                        "green" => SubwayLine::Green,
-                                        "blue" => SubwayLine::Blue,
-                                        "red" => SubwayLine::Red,
-                                        _ => {
-                                            return Err(anyhow!("Parsing error: unexpected metro line."));
-                                        }
-                                    },
-                                    name: inner.next().unwrap().as_str().to_string(),
-                                }
-                            )
-                        },
-                        Rule::landmark => apartment.infrastructure.landmarks.push(pair.into_inner().next().unwrap().as_str().to_string()),
-                        Rule::residential_complex => apartment.infrastructure.residential_complex = Option::from(pair.into_inner().next().unwrap().as_str().to_string()),
+                            apartment.infrastructure.subway_station.push(SubwayStation {
+                                line: match inner.next().unwrap().as_str() {
+                                    "green" => SubwayLine::Green,
+                                    "blue" => SubwayLine::Blue,
+                                    "red" => SubwayLine::Red,
+                                    _ => {
+                                        return Err(anyhow!(
+                                            "Parsing error: unexpected metro line."
+                                        ));
+                                    }
+                                },
+                                name: inner.next().unwrap().as_str().to_string(),
+                            })
+                        }
+                        Rule::landmark => apartment
+                            .infrastructure
+                            .landmarks
+                            .push(pair.into_inner().next().unwrap().as_str().to_string()),
+                        Rule::residential_complex => {
+                            apartment.infrastructure.residential_complex =
+                                Option::from(pair.into_inner().next().unwrap().as_str().to_string())
+                        }
                         Rule::commission => {
                             let mut inner = pair.into_inner();
                             if let Some(commission) = inner.next() {
                                 match commission.as_rule() {
-                                    Rule::number => apartment.permits.commission.commission_rate = commission.as_str().parse::<u32>()?,
+                                    Rule::number => {
+                                        apartment.permits.commission.commission_rate =
+                                            commission.as_str().parse::<u32>()?
+                                    }
                                     Rule::price_number => {
                                         let price_number = commission.as_str().parse::<u32>()?;
                                         let currency = match inner.next().unwrap().as_str() {
-                                            "USD" => Currency::USD,
-                                            "€" => Currency::EUR,
-                                            _ => Currency::UAH,
+                                            "USD" => Currency::Usd,
+                                            "€" => Currency::Eur,
+                                            _ => Currency::Uah,
                                         };
-                                        apartment.permits.commission.commission_price = Option::from(Price {
-                                            price_number,
-                                            currency
-                                        });
+                                        apartment.permits.commission.commission_price =
+                                            Option::from(Price {
+                                                price_number,
+                                                currency,
+                                            });
                                     }
                                     _ => {}
                                 }
@@ -119,7 +164,7 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
                         _ => {}
                     }
                 }
-            },
+            }
             Rule::details_description => {
                 let mut inner = pair.into_inner();
                 let description = inner.next().unwrap();
@@ -127,9 +172,18 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
                 for pair in description.into_inner() {
                     match pair.as_rule() {
                         Rule::bargain => apartment.permits.bargain = true,
-                        Rule::house_value => apartment.characteristics.house_type = Option::from(pair.as_str().to_string()),
-                        Rule::planning_value => apartment.characteristics.room_planning = Option::from(pair.as_str().to_string()),
-                        Rule::state_value => apartment.characteristics.state = Option::from(pair.as_str().to_string()),
+                        Rule::house_value => {
+                            apartment.characteristics.house_type =
+                                Option::from(pair.as_str().to_string())
+                        }
+                        Rule::planning_value => {
+                            apartment.characteristics.room_planning =
+                                Option::from(pair.as_str().to_string())
+                        }
+                        Rule::state_value => {
+                            apartment.characteristics.state =
+                                Option::from(pair.as_str().to_string())
+                        }
                         _ => {}
                     }
                 }
@@ -137,15 +191,44 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
             Rule::rieltor => {
                 let mut inner = pair.into_inner();
                 let rieltor_phone_number = inner.next().unwrap().as_str().to_string();
-                let rieltor_name = inner.next().unwrap().into_inner().next().unwrap().as_str().to_string();
-                let rieltor_position = inner.next().unwrap().into_inner().next().unwrap().as_str().to_string();
+                let rieltor_name = inner
+                    .next()
+                    .unwrap()
+                    .into_inner()
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .to_string();
+                let rieltor_position = inner
+                    .next()
+                    .unwrap()
+                    .into_inner()
+                    .next()
+                    .unwrap()
+                    .as_str()
+                    .to_string();
                 if let Some(rieltor_agency_container) = inner.next() {
-                    let rieltor_agency = rieltor_agency_container.into_inner().next().unwrap().as_str().to_string();
-                    apartment.rieltor = Rieltor { rieltor_name, rieltor_phone_number, rieltor_position, rieltor_agency: Some(rieltor_agency) };
+                    let rieltor_agency = rieltor_agency_container
+                        .into_inner()
+                        .next()
+                        .unwrap()
+                        .as_str()
+                        .to_string();
+                    apartment.rieltor = Rieltor {
+                        rieltor_name,
+                        rieltor_phone_number,
+                        rieltor_position,
+                        rieltor_agency: Some(rieltor_agency),
+                    };
                 } else {
-                    apartment.rieltor = Rieltor { rieltor_name, rieltor_phone_number, rieltor_position, rieltor_agency: None };
+                    apartment.rieltor = Rieltor {
+                        rieltor_name,
+                        rieltor_phone_number,
+                        rieltor_position,
+                        rieltor_agency: None,
+                    };
                 }
-            },
+            }
             Rule::photo_list => {
                 for photo in pair.into_inner() {
                     apartment.photo.push(photo.as_str().to_string());
@@ -188,5 +271,6 @@ pub async fn parse_apartment(src: &str) -> Result<Apartment> {
         parse(&html_content)
     } else {
         let html_content = load_html(src)?;
-        parse(&html_content)    }
+        parse(&html_content)
+    }
 }

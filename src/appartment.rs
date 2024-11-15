@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Currency {
-    UAH,
-    USD,
-    EUR,
+    Uah,
+    Usd,
+    Eur,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -131,13 +131,23 @@ impl Apartment {
         }
     }
 }
+impl Default for Apartment {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Price {
     pub fn new() -> Self {
         Self {
             price_number: 0,
-            currency: Currency::UAH,
+            currency: Currency::Uah,
         }
+    }
+}
+impl Default for Price {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -152,6 +162,12 @@ impl Address {
     }
 }
 
+impl Default for Address {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Description {
     pub fn new() -> Self {
         Self {
@@ -160,6 +176,13 @@ impl Description {
         }
     }
 }
+
+impl Default for Description {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Permits {
     pub fn new() -> Self {
         Self {
@@ -173,12 +196,24 @@ impl Permits {
     }
 }
 
+impl Default for Permits {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Commission {
     pub fn new() -> Self {
         Self {
             commission_rate: 0,
             commission_price: None,
         }
+    }
+}
+
+impl Default for Commission {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -189,6 +224,12 @@ impl Infrastructure {
             landmarks: Vec::new(),
             residential_complex: None,
         }
+    }
+}
+
+impl Default for Infrastructure {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -207,6 +248,12 @@ impl Characteristics {
     }
 }
 
+impl Default for Characteristics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Area {
     pub fn new() -> Self {
         Self {
@@ -214,6 +261,12 @@ impl Area {
             living: 0.,
             kitchen: 0.,
         }
+    }
+}
+
+impl Default for Area {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -226,6 +279,11 @@ impl AdvertStatistics {
         }
     }
 }
+impl Default for AdvertStatistics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Views {
     pub fn new() -> Self {
@@ -236,6 +294,13 @@ impl Views {
         }
     }
 }
+
+impl Default for Views {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Rieltor {
     pub fn new() -> Self {
         Self {
@@ -244,5 +309,11 @@ impl Rieltor {
             rieltor_position: String::new(),
             rieltor_agency: None,
         }
+    }
+}
+
+impl Default for Rieltor {
+    fn default() -> Self {
+        Self::new()
     }
 }
