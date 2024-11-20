@@ -3,6 +3,7 @@ name = "rieltor_parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["Shvachka Denys <d.shvachka@ukma.edu.ua>"]
+license = "MIT"
 description = "A parser for extracting detailed apartment information from the rieltor.ua website's HTML."
 homepage = "https://github.com/denisinside/rieltor_parser"
 repository = "https://github.com/denisinside/rieltor_parser"
