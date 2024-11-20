@@ -83,18 +83,51 @@ This parser uses a custom-defined grammar (`grammar.pest`) to tokenize and extra
        "max_floor": 6,
        "house_type": "Бетонно монолітний",
        "room_planning": "Роздільне",
-       "state": "Дизайнерський ремонт"
+       "state": "Дизайнерський ремонт",
+       "statistics": {
+          "renewed": "3 дні тому",
+          "published": "3 міс. тому",
+          "views": {
+            "total": 94,
+            "today": 1,
+            "yesterday": 1
+          }
+        }
      },
      "description": {
        "advert_description": "Без комісії! Довгострокова оренда квартири...",
        "details_description": "Будинок - Бетонно монолітний, в квартирі 2 кімнати..."
      },
+      "permits": {
+        "premium_advert": false,
+        "short_period": false,
+        "commission": {
+          "commission_rate": 50,
+          "commission_price": null
+        },
+        "allow_children": true,
+        "allow_pets": false,
+        "bargain": false
+     },
+     "infrastructure": {
+        "subway_station": [
+          {
+            "name": "Наукова",
+            "line": "Green"
+          }
+        ],
+        "landmarks": [],
+        "residential_complex": null
+     },
      "rieltor": {
        "rieltor_name": "Малишко Максим",
        "rieltor_phone_number": "0991232323",
-       "rieltor_position": "Рієлтор"
+       "rieltor_position": "Рієлтор",
+       "rieltor_agency": "SoftyMeow"
      },
      "photo": [
+       "https://img.lunstatic.net/rieltor-offer-1600x1200/offers/411/11/1/????.jpeg",
+       "https://img.lunstatic.net/rieltor-offer-1600x1200/offers/422/22/2/????.jpeg",
        "https://img.lunstatic.net/rieltor-offer-1600x1200/offers/433/33/3/????.jpeg"
      ]
    }
