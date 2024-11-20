@@ -319,4 +319,60 @@ mod tests {
             assert!(photo_string.ends_with("x.jpeg"));
         }
     }
+
+    #[test]
+    fn test_apartment_links() {
+        let test1 = "https://rieltor.ua/harkov/flats-rent/view/11569123/";
+        let pairs1 =
+            ApartmentParser::parse(Rule::apartment_link, test1).expect("Unsuccessful parsing.");
+        assert_eq!(1, pairs1.clone().count());
+        assert_eq!(
+            Rule::apartment_link,
+            pairs1.clone().next().unwrap().as_rule()
+        );
+
+        let test2 = "https://rieltor.ua/flats-rent/view/11569123/";
+        let pairs2 =
+            ApartmentParser::parse(Rule::apartment_link, test2).expect("Unsuccessful parsing.");
+        assert_eq!(1, pairs2.clone().count());
+        assert_eq!(
+            Rule::apartment_link,
+            pairs2.clone().next().unwrap().as_rule()
+        );
+
+        let test3 = r"https://rieltor.ua/harkov/flats-rent/3-rooms/?price_max=6250&sort=-default";
+        let pairs3 = ApartmentParser::parse(Rule::apartment_list_link, test3)
+            .expect("Unsuccessful parsing.");
+        assert_eq!(1, pairs3.clone().count());
+        assert_eq!(
+            Rule::apartment_list_link,
+            pairs3.clone().next().unwrap().as_rule()
+        );
+
+        let test4 = r"https://rieltor.ua/flats-rent";
+        let pairs4 = ApartmentParser::parse(Rule::apartment_list_link, test4)
+            .expect("Unsuccessful parsing.");
+        assert_eq!(1, pairs4.clone().count());
+        assert_eq!(
+            Rule::apartment_list_link,
+            pairs4.clone().next().unwrap().as_rule()
+        );
+    }
+
+    #[test]
+    fn test_event_date() {
+        let test1 = "вчора";
+        let test2 = "6 днів тому";
+        let test3 = "1 тиж. тому";
+        let test4 = "3 міс. тому";
+        let test5 = "2 р. 5 міс. тому";
+        let test6 = "1 р. 3 міс. тому";
+
+        ApartmentParser::parse(Rule::event_date, test1).expect("Unsuccessful parsing.");
+        ApartmentParser::parse(Rule::event_date, test2).expect("Unsuccessful parsing.");
+        ApartmentParser::parse(Rule::event_date, test3).expect("Unsuccessful parsing.");
+        ApartmentParser::parse(Rule::event_date, test4).expect("Unsuccessful parsing.");
+        ApartmentParser::parse(Rule::event_date, test5).expect("Unsuccessful parsing.");
+        ApartmentParser::parse(Rule::event_date, test6).expect("Unsuccessful parsing.");
+    }
 }

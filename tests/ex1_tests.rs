@@ -5,7 +5,7 @@ mod tests {
 
     #[test]
     fn test_document_parsing() {
-        let content = load_html("ex1.html").unwrap();
+        let content = load_html(r"tests\ex1.html").unwrap();
         let pairs = ApartmentParser::parse(Rule::document, content.as_str())
             .expect("Unsuccessful parsing.");
 

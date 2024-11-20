@@ -1,15 +1,19 @@
-// 
+//
 // Created by intellij-pest on 2024-11-05
 // grammar
 // Author: denisinside
-// 
+//
 
 WHITESPACE = _{ " " | "\t" | "\n" }
 
-document = _{ SOI ~ ((!id ~ ANY)* ~ id) ~ (not_apartment? ~ apartment)+ }
+/// A `document` represents the main entry point for parsing. It consists of optional content before an `id`,
+/// followed by one or more `apartment` rules. Non-apartment content (`not_apartment`) may appear between them.
+document = _{ ((!id ~ ANY)* ~ id) ~ (not_apartment? ~ apartment)+ }
 
+/// Matches any content that is not an `apartment`. Used to skip irrelevant sections.
 not_apartment = _{ (!apartment ~ ANY)* }
 
+/// An `apartment` is defined by multiple components such as `price`, `address`, `label_section`, etc.
 apartment = _{
     price
   | address
@@ -21,37 +25,67 @@ apartment = _{
   | photo_list
 }
 
+/// An `id` matches the listing identifier.
 id = { "Оголошення №" ~ number }
 
+/// Extracts the price of the apartment, including currency.
 price        =  { "<div class=\"offer-view-price-title\">" ~ price_value ~ "/міс" ~ "</div>" }
+/// A `price_value` consists of a numeric value and the corresponding currency.
 price_value  = _{ price_number ~ currency }
+/// Matches the numeric part of a price, allowing for grouped digits separated by spaces.
 price_number =  { (ASCII_DIGIT ~ (ASCII_DIGIT | WHITESPACE)*) }
+/// Recognizes the currency of the price, which can be Ukrainian hryvnia (грн), euros (€), or dollars ($).
 currency     = @{ "грн" | "€" | "$" }
 
+/// Extracts the full address of the apartment, including street, house number, city, and district.
 address      =  { "<div class=\"offer-view-address\">" ~ street ~ "," ~ house_number ~ "</div>" ~ skip_value ~ "</div>" ~ "<div class=\"offer-view-region\">" ~ city ~ "," ~ district }
+/// A `street` can be a linked HTML anchor element or a plain text value.
 street       = _{ ("<a class=\"address-link\" href=\"" ~ skip_attr_value ~ "\">" ~ value ~ "</a>") | street_value }
-city         = _{ "<a class=\"address-link\" href=\"https://rieltor.ua/flats-rent/\">" ~ value ~ "</a>" }
+/// Extracts the city name from an anchor element.
+city         = _{ "<a class=\"address-link\" href=\"" ~ skip_attr_value ~ "\">" ~ value ~ "</a>" }
+/// Extracts the district name from a linked anchor element.
 district     = _{ "<a class=\"address-link\" href=\"" ~ skip_attr_value ~ "\" data-analytics-event=\"card-click-region\">" ~ value ~ "</a>" }
+/// Matches the house number, which may include optional fractions or Ukrainian letters.
 house_number = @{ number ~ ("/" ~ number)? ~ ukr_letter? }
+/// Matches a generic text value until encountering `,` (end of the street name).
 street_value = @{ (!"," ~ ANY)* }
 
+/// Parses the `label_section` that contains various tags for attributes like "premium", "short-term rental", commission,
+/// subway stations, nearby landmarks, residential complexes, and permissions for pets or children.
 label_section      = { "<div class=\"offer-view-labels uilabels\">" ~ premium_advert_tag? ~ short_period_tag? ~ commission_tag? ~ (subway_station)* ~ (landmark)* ~ residential_complex? ~ allow_children_tag? ~ allow_pets_tag? }
+/// Matches premium advertisement tags, such as "ПРЕМІУМ" or "ГАРЯЧЕ" or "ЕЛІТ" etc.
 premium_advert_tag = _{ "<span class=\"uilabel -premium\">" ~ premium_advert ~ "</span>" }
-premium_advert     = @{ "ПРЕМІУМ"| "ГАРЯЧЕ" | "ЕЛІТ" }
+/// The inner value of `premium_advert_tag` rule.
+premium_advert     = @{ "ПРЕМІУМ"| "ГАРЯЧЕ" | "ЕЛІТ" | "ВИГІДНО" }
+/// Matches short-term rental advertisement tag, such as "Доступна на короткий термін".
 short_period_tag   = _{ "<span class=\"uilabel -green\">" ~ short_period ~ "</span>" }
+/// The inner value of `short_period_tag` rule.
 short_period       = @{ "Доступна на короткий термін" }
+/// Extracts commission-related information, such as the percentage or whether there is no commission.
 commission_tag     = _{ "<span class=\"uilabel -green\">" ~ commission ~ "</span>" }
+/// The inner value of `commission_tag` rule.
 commission         = ${ (("Комісія " ~ ((number ~ "%") | price_value)) | no_commission) }
+/// The inner value of `commission` rule. Shows that the apartment advert has no commission.
 no_commission      = @{ "БЕЗ КОМІСІЇ" }
+/// Extracts subway-related information, such as the line color and the station's name.
 subway_station     =  { "<a class=\"uilabel -link -icon -subway-" ~ subway_line ~ "\"" ~ "href=\"" ~ skip_attr_value ~ "\"" ~ "data-analytics-event=\"card-click-subway_chip\">" ~ skip_svg? ~ "<span>" ~ value ~ "</span>" ~ "</a>" }
+/// The color of the subway station line.
 subway_line        = @{ "red" | "green" | "blue" }
+/// Extracts list of nearby landmarks.
 landmark           =  { "<a class=\"uilabel -link\" data-analytics-event=\"card-click-landmark_chip\"" ~ "href=\"" ~ skip_attr_value ~ "\">" ~ value ~ "</a>" }
+/// Extracts the name of residential complex.
 residential_complex=  { "<a class=\"uilabel -link\" data-analytics-event=\"card-click-newhouse_chip\"" ~ "href=\"" ~ skip_attr_value ~ "\">" ~ value ~ "</a>" }
+/// Extracts permission for children.
 allow_children_tag = _{ "<a class=\"uilabel -link\" data-analytics-event=\"card-click-allow_children_chip\"" ~ (!allow_children ~ ANY)* ~ allow_children ~ "</a>" }
+/// The inner value of `allow_children_tag` rule.
 allow_children     = @{ "Можна з дітьми" }
+/// Extracts permission for pets.
 allow_pets_tag     = _{ "<a class=\"uilabel -link\" data-analytics-event=\"card-click-allow_pets_chip\"" ~ (!allow_pets ~ ANY)* ~ allow_pets ~ "</a>" }
+/// The inner value of `allow_pets_tag` rule.
 allow_pets         = @{ "Можна з тваринами" | "Можна з деякими тваринами" }
 
+/// Extracts detailed apartment characteristics, including room count, area (total, living, kitchen),
+/// floor information, and timestamps (renewed and published).
 characteristics =  {
     l_p_char ~ room_count ~ r_p_char ~
     l_p_char ~ area ~ r_p_char ~
@@ -61,55 +95,106 @@ characteristics =  {
     l_p_date_char ~ published ~ r_p_char ~
     l_p_date_char ~ views ~ r_p_char
 }
+
+/// Html sections for matching.
+/// Left part of characteristic left column tag.
 l_p_char            = _{ ("<div class=\"offer-view-details-column" ~ "\">")? ~ "<div class=\"offer-view-details-row\">" ~ skip_svg? ~ "<span>" }
+/// Left part of characteristic right column tag.
 l_p_date_char       = _{ ("<div class=\"offer-view-details-column-aside" ~ "\">")? ~ "<div class=\"offer-view-details-row\">" ~ skip_svg? ~ "<span>" }
+/// Right part of any characteristic column tag.
 r_p_char            = _{ "</span>" ~ "</div>" ~ "</div>"? }
+/// Skips the mid part of characteristics (Too hard to parse unstable tags here).
 skip_to_date_column = _{ (!"<div class=\"offer-view-details-column-aside" ~ ANY)* }
 
+/// Left characteristics column.
+/// Extracts the room count.
 room_count = { "<a href=\"" ~ skip_attr_value ~ "\">" ~ number ~ "кімнат" ~ ("а" | "и")? ~ "</a>" }
+/// Extracts the apartment area (total, living, kitchen).
 area       = { float ~ "/" ~ float ~ "/" ~ float ~ "м²" }
+/// Extracts the floor info (apartment floor, max house flor)
 floor_info = { "поверх" ~ number ~ "з" ~ number }
 
+/// Right characteristics column.
+/// Extracts information when the apartment was renewed last time.
 renewed    =  { event_date }
+/// Extracts information when the apartment was published.
 published  =  { event_date }
+/// Extracts information about advert views (total, today, yesterday).
 views      =  { number ~ "(сьогодні" ~ number ~ "," ~ "вчора" ~ number ~ ")" }
-event_date = @{ "сьогодні" | "вчора" | number ~ (" дні" ~ "в"? | " міс." | " тиж.") ~ " тому" }
+/// Contains date timestamp (e.g. "2 тиж. тому", "1 р. 5 міс. тому").
+event_date = @{ "сьогодні" | "вчора" | (WHITESPACE? ~ number ~ (" дні" ~ "в"? | " тиж." | " міс." | " р."))+ ~ " тому" }
 
+/// Extracts the main description of the apartment.
 description      =  _{ "<div class=\"offer-view-section-title\">Опис</div>" ~ "<div class=\"offer-view-section-text\">" ~ description_text ~ "</div>" }
+/// Value of the description.
 description_text = @{ (!"</div>" ~ ANY)* }
 
+/// Parses additional details about the apartment, such as house type, room planning, or general state from "Details" section.
 details_description = { "<div class=\"offer-view-section-title\">Деталі</div>" ~ "<div class=\"offer-view-section-text\">" ~ det_descr_text ~ "</div>" }
+/// Extracts the whole text of details description.
 det_descr_text      =  { (!"</div>" ~ (not_detail | detail))+ }
+/// Skips the uninteresting information.
 not_detail          = _{ (!"</div>" ~ !detail ~ ANY)+ }
+/// A `detail` is defined by multiple components such as `house_type`, `room_planning`, `state`, `bargain`.
 detail              = _{ house_type | room_planning | state | bargain }
+/// Extracts the type of the apartment's house.
 house_type          = _{ "Будинок -" ~ house_value ~ "," }
+/// Extracts the room planning of the apartment.
 room_planning       = _{ "Планування кімнат" ~ planning_value ~ "." }
+/// Extracts the state of the apartment.
 state               = _{ "Загальний стан квартири -" ~ state_value ~ "." }
+/// Extracts the bargain possibility.
 bargain             =  { "Торг доречний" }
 
+/// The inner value of `house_type` rule.
 house_value    = @{ (!"," ~ ANY)+ }
+/// The inner value of `room_planning` rule.
 planning_value = @{ (!"." ~ ANY)+ }
+/// The inner value of `state` rule.
 state_value    = @{ (!"." ~ ANY)+ }
 
+/// Extracts information about the realtor, including name, phone number, position, and optional agency name.
 rieltor              =  { "<div class=\"offer-view-rieltor-header-info\">" ~ rieltor_phone_number ~ rieltor_name ~ rieltor_position ~ rieltor_agency? }
+/// Extracts the phone number of the apartment publisher.
 rieltor_phone_number = _{ "<a href=\"https://" ~ phone_number ~ ".rieltor.ua/\" class=\"offer-view-rieltor-name\" rel=\"" ~ skip_attr_value ~ "\">" }
+/// Extracts the name of the apartment publisher.
 rieltor_name         =  { value ~ "</a>" }
+/// Extracts the position (rieltor or owner) of the apartment publisher.
 rieltor_position     =  { "<div class=\"offer-view-rieltor-position\">" ~ value ~ "</div>" }
+/// Extracts the agency of the apartment publisher.
 rieltor_agency       =  { "<a href=\"" ~ skip_attr_value ~ "\"" ~ "class=\"offer-view-rieltor-agency-link\">" ~ value ~ "</a>" }
+/// The inner value of `rieltor_phone_number` rule.
 phone_number         = @{ ASCII_DIGIT{10} }
 
+/// Matches a list of photo elements.
 photo_list =  { photo+ }
+/// Extracts the `src` attribute of images in the photo gallery.
 photo      = _{ "<img class=\"offer-photo-gallery__image\" src=\"" ~ attr_value ~ "\" alt=\"" ~ skip_attr_value ~ "\" loading=\"" ~ skip_attr_value ~ "\">" }
 
+/// Matches a list of apartments by their links.
+apartment_list = _{ ((!apartment_link ~ ANY)*? ~ apartment_link)+ }
+/// Matches a link with the list of apartments.
+apartment_list_link = @{"https://rieltor.ua/" ~ ((!"/flats-rent" ~ ANY)+ ~ "/")? ~ "flats-rent" ~ ANY* }
+/// Matches a direct link to a specific apartment listing.
+apartment_link = @{ "https://rieltor.ua/" ~ ((!"/flats-rent" ~ ANY)+ ~ "/")? ~ "flats-rent/view/" ~ number ~ "/"? }
+
+/// Matches numeric values.
 number     = @{ ASCII_DIGIT+ }
-float     = @{ number ~ ("." ~ number+)? }
+/// Matches floating-point numbers, optionally with a decimal point.
+float      = @{ number ~ ("." ~ number+)? }
+/// Matches Ukrainian letters.
 ukr_letter = @{
     ('А'..'Я' | 'а'..'я' | "І" | "і" | "Ї" | "ї" | "Є" | "є" | "Ґ" | "ґ")
 }
 
+/// Matches a generic text value until encountering `<` (tag) or five consecutive spaces.
 value      = @{ (!"<" ~ !" "{5} ~ ANY)* }
+/// Matches the value of an HTML attribute.
 attr_value =  { (!"\"" ~ ANY)* }
 
+/// Skips any content until encountering the closing `</div>` tag.
 skip_value      = _{ (!"</div>" ~ ANY)* }
+/// Skips any content until encountering the closing `"` symbol.
 skip_attr_value = _{ (!"\"" ~ ANY)* }
+/// Skips any content within SVG tags, including the closing `</svg>`.
 skip_svg        = _{ (!"</svg>" ~ ANY)* ~ "</svg>" }

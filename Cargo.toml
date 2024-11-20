@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Shvachka Denys <d.shvachka@ukma.edu.ua>"]
 description = "A parser for extracting detailed apartment information from the rieltor.ua website's HTML."
+homepage = "https://github.com/denisinside/rieltor_parser"
+repository = "https://github.com/denisinside/rieltor_parser"
 
 [dependencies]
 pest = "2.7.14"
@@ -13,3 +15,6 @@ serde_json = "1.0"
 reqwest = { version = "0.12.9" }
 anyhow = "1.0"
 tokio = { version = "1", features = ["full"] }
+clap = { version = "4.1", features = ["derive"] }
+chrono = "0.4.38"
+futures = "0.3"
