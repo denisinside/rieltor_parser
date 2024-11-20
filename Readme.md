@@ -1,6 +1,9 @@
 # Rieltor.ua Apartment Parser
 
-Rieltor.ua Apartment Parser is a Rust-based tool for parsing apartment listings from the Rieltor.ua website. It extracts detailed information about apartment listings and converts it into structured JSON data, suitable for further analysis or integration with other applications.
+Rieltor.ua Apartment Parser is a Rust-based tool for parsing apartment listings from the Rieltor.ua website. It extracts detailed information about apartment listings and converts it into structured JSON data, suitable for further analysis or integration with other applications.  
+
+[Crates.io](https://crates.io/crates/rieltor_parser)  
+[Docs.rs](https://docs.rs/rieltor_parser/latest/rieltor_parser/)
 
 ## Features
 - Parses apartment details, including pricing, address, characteristics, description, and infrastructure.
