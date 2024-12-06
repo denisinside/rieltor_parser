@@ -174,9 +174,9 @@ photo      = _{ "<img class=\"offer-photo-gallery__image\" src=\"" ~ attr_value 
 /// Matches a list of apartments by their links.
 apartment_list = _{ ((!apartment_link ~ ANY)*? ~ apartment_link)+ }
 /// Matches a link with the list of apartments.
-apartment_list_link = @{"https://rieltor.ua/" ~ ((!"/flats-rent" ~ ANY)+ ~ "/")? ~ "flats-rent" ~ ANY* }
+apartment_list_link = @{"https://rieltor.ua" ~ ((!"/flats-rent" ~ ANY)+)? ~ "/flats-rent" ~ ANY* }
 /// Matches a direct link to a specific apartment listing.
-apartment_link = @{ "https://rieltor.ua/" ~ ((!"/flats-rent" ~ ANY)+ ~ "/")? ~ "flats-rent/view/" ~ number ~ "/"? }
+apartment_link = @{ "https://rieltor.ua" ~ ((!"/flats-rent" ~ ANY)+)? ~ "/flats-rent/view/" ~ number ~ "/"? }
 
 /// Matches numeric values.
 number     = @{ ASCII_DIGIT+ }
