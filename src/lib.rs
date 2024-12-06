@@ -34,8 +34,8 @@ pub fn parse(html_content: &str) -> Result<Apartment> {
     for pair in parsed {
         match pair.as_rule() {
             Rule::id => {
-                apartment.id = pair.into_inner().next().unwrap().as_str().to_string();
-                apartment.link = format!("https://rieltor.ua/flats-rent/view/{}/", apartment.id);
+                apartment._id = pair.into_inner().next().unwrap().as_str().to_string();
+                apartment.link = format!("https://rieltor.ua/flats-rent/view/{}/", apartment._id);
             }
             Rule::price => {
                 let mut inner = pair.into_inner();
@@ -273,11 +273,11 @@ pub fn save_to_json(apartment: &Apartment, file_path: &str) -> Result<String> {
     }
 
     if final_path.is_dir() {
-        final_path = final_path.join("").join(&apartment.id);
+        final_path = final_path.join("").join(&apartment._id);
     }
 
     if final_path.file_name().is_none() {
-        final_path = final_path.join(&apartment.id);
+        final_path = final_path.join(&apartment._id);
     }
 
     final_path.set_extension("json");
@@ -326,7 +326,7 @@ pub fn save_apartments_to_directory(apartments: &[Apartment], file_path: &str) -
         if let Err(e) = save_to_json(apartment, final_path.to_str().unwrap()) {
             eprintln!(
                 "Failed to save apartment to file: {} apartment id. Error: {}",
-                apartment.id, e
+                apartment._id, e
             );
         }
     });

@@ -26,7 +26,7 @@ pub enum SubwayLine {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Apartment {
     /// Unique identifier of the apartment.
-    pub id: String,
+    pub _id: String,
     /// Link to the apartment's webpage.
     pub link: String,
     /// The price of the apartment, including currency.
@@ -193,7 +193,7 @@ pub struct Rieltor {
 impl Apartment {
     pub fn new() -> Self {
         Self {
-            id: String::new(),
+            _id: String::new(),
             link: String::new(),
             price: Price::new(),
             address: Address::new(),
