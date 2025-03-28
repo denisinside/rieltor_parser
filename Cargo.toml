@@ -1,6 +1,6 @@
 [package]
 name = "rieltor_parser"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["Shvachka Denys <d.shvachka@ukma.edu.ua>"]
 license = "MIT"
