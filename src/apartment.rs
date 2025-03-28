@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Enum representing supported currencies for apartment prices.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum Currency {
     /// Ukrainian Hryvnia
     Uah,
@@ -12,7 +12,7 @@ pub enum Currency {
 }
 
 /// Enum representing subway lines associated with apartment locations.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum SubwayLine {
     /// Red subway line
     Red,
@@ -23,7 +23,7 @@ pub enum SubwayLine {
 }
 
 /// The main structure representing an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Apartment {
     /// Unique identifier of the apartment.
     pub _id: String,
@@ -47,7 +47,7 @@ pub struct Apartment {
     pub photo: Vec<String>,
 }
 /// Structure representing the price of an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Price {
     /// Numeric value of the price.
     pub price_number: u32,
@@ -56,7 +56,7 @@ pub struct Price {
 }
 
 /// Structure representing the address of an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Address {
     /// Street name.
     pub street: String,
@@ -69,7 +69,7 @@ pub struct Address {
 }
 
 /// Structure representing permissions or tags associated with an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Permits {
     /// Indicates if the apartment is advertised as premium.
     pub premium_advert: bool,
@@ -86,7 +86,7 @@ pub struct Permits {
 }
 
 /// Structure representing commission details for an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Commission {
     /// Commission rate in percentage.
     pub commission_rate: u32,
@@ -95,7 +95,7 @@ pub struct Commission {
 }
 
 /// Structure representing nearby infrastructure details.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Infrastructure {
     /// List of nearby subway stations.
     pub subway_station: Vec<SubwayStation>,
@@ -106,7 +106,7 @@ pub struct Infrastructure {
 }
 
 /// Structure representing a subway station.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SubwayStation {
     /// Name of the subway station.
     pub name: String,
@@ -115,7 +115,7 @@ pub struct SubwayStation {
 }
 
 /// Structure representing the main characteristics of an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Characteristics {
     /// Number of rooms in the apartment.
     pub room_count: u32,
@@ -136,7 +136,7 @@ pub struct Characteristics {
 }
 
 /// Structure representing the area details of an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Area {
     /// Total area of the apartment in square meters.
     pub total: f32,
@@ -147,7 +147,7 @@ pub struct Area {
 }
 
 /// Structure representing advertisement statistics.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct AdvertStatistics {
     /// Date the listing was last renewed.
     pub renewed: String,
@@ -158,7 +158,7 @@ pub struct AdvertStatistics {
 }
 
 /// Structure representing view statistics for a listing.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Views {
     /// Total number of views.
     pub total: u32,
@@ -169,7 +169,7 @@ pub struct Views {
 }
 
 /// Structure representing the description of an apartment.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Description {
     /// Main description of the apartment.
     pub advert_description: String,
@@ -178,7 +178,7 @@ pub struct Description {
 }
 
 /// Structure representing the realtor responsible for the listing.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Rieltor {
     /// Name of the realtor.
     pub rieltor_name: String,
